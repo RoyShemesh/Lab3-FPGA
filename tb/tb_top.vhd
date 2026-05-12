@@ -55,11 +55,10 @@ begin
 			done             => done
 		);
 
-
 	process
-		file     itcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/SW-QA/Ex1/bin/ITCMinit.txt";
-		file     dtcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/SW-QA/Ex1/bin/DTCMinit.txt";
-		file     dtcm_result : text open write_mode is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/tb/DTCMcontent.txt";
+		file     itcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/SW-QA/Ex6/bin/ITCMinit.txt";
+		file     dtcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/SW-QA/Ex6/bin/DTCMinit.txt";
+		file     dtcm_result : text open write_mode is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/tb/DTCMcontent6.txt";
 		variable l           : line;
 		variable data_v      : std_logic_vector(BusWidth-1 downto 0);
 		variable addr_i      : integer;

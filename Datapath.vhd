@@ -91,6 +91,17 @@ architecture structural of Datapath is
 	signal C_reg   : std_logic_vector(BusWidth-1 downto 0);
 	signal ALU_out : std_logic_vector(BusWidth-1 downto 0);
 
+	-- ALU flag outputs (combinational) and their latched copies.
+	-- The latched versions are what the FSM sees for JC/JNC; they are
+	-- captured at the same edge as C_reg (when Cin='1') so the flag
+	-- survives later ALU operations on unrelated operands.
+	signal Zflag_alu : std_logic;
+	signal Nflag_alu : std_logic;
+	signal Cflag_alu : std_logic;
+	signal Zflag_reg : std_logic;
+	signal Nflag_reg : std_logic;
+	signal Cflag_reg : std_logic;
+
 	-- DTCM
 	signal DTCM_addr_reg : std_logic_vector(AddrWidth-1 downto 0);
 	signal DTCM_data_out : std_logic_vector(BusWidth-1 downto 0);
@@ -227,10 +238,35 @@ begin
 			B     => BUS_sig,
 			ALUFN => ALUFN,
 			C     => ALU_out,
-			Zflag => Zflag,
-			Nflag => Nflag,
-			Cflag => Cflag
+			Zflag => Zflag_alu,
+			Nflag => Nflag_alu,
+			Cflag => Cflag_alu
 		);
+
+	-----------------------------------------------------------------
+	-- Flag register: latches ALU flags whenever Cin='1' (i.e. at the
+	-- same edge C_reg captures the result). The FSM then sees a stable
+	-- flag value in S_JC/S_JNC instead of whatever the ALU happens to
+	-- be computing in those states.
+	-----------------------------------------------------------------
+	process(clk, rst)
+	begin
+		if rst = '1' then
+			Zflag_reg <= '0';
+			Nflag_reg <= '0';
+			Cflag_reg <= '0';
+		elsif rising_edge(clk) then
+			if Cin = '1' then
+				Zflag_reg <= Zflag_alu;
+				Nflag_reg <= Nflag_alu;
+				Cflag_reg <= Cflag_alu;
+			end if;
+		end if;
+	end process;
+
+	Zflag <= Zflag_reg;
+	Nflag <= Nflag_reg;
+	Cflag <= Cflag_reg;
 
 	-----------------------------------------------------------------
 	-- REG-C (M-S type): latches ALU result, drives BUS when Cout='1'

@@ -35,7 +35,7 @@ begin
 
 	with PCsel select
 		next_pc <= PC_plus1                  when "00",
-		           PC_plus1 + offset_ext    when "01",
+		           PC_current + offset_ext    when "01",
 		           (others => '0')           when others;
 
 
