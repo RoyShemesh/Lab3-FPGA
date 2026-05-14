@@ -1,13 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use std.textio.all;
-use ieee.std_logic_textio.all;
 -----------------------------------------------------------------
 -- Datapath testbench
--- Loads ITCM/DTCM from files, manually drives control signals,
--- and dumps DTCM result to DTCMcontent.txt.
--- Working directory must be the LAB3 root.
+-- Writes instructions directly into ITCM, manually drives control
+-- signals, and tests ADD and XOR R-type instructions.
 -----------------------------------------------------------------
 entity tb_Datapath is
 end tb_Datapath;
@@ -121,12 +117,6 @@ begin
 		);
 
 	process
-		file     itcm_init   : text open read_mode  is "ITCMinit.txt";
-		file     dtcm_init   : text open read_mode  is "DTCMinit.txt";
-		file     dtcm_result : text open write_mode is "DTCMcontent.txt";
-		variable l           : line;
-		variable data_v      : std_logic_vector(BusWidth-1 downto 0);
-		variable addr_i      : integer;
 	begin
 
 		-- ---- Reset ----
@@ -135,94 +125,94 @@ begin
 		wait for 2 * CLK_PERIOD;
 		rst <= '0';
 
-		-- ---- Load ITCM ----
-		report "Loading ITCM from ITCMinit.txt";
+		-- [0] MOV R1, #0xFF  opc=1100 ra=0001 imm8=1111_1111  -> 1100_0001_1111_1111
+		-- [1] MOV R2, #1     opc=1100 ra=0010 imm8=0000_0001  -> 1100_0010_0000_0001
+		-- [2] ADD R0, R1, R2 opc=0000 ra=0000 rb=0001 rc=0010 -> 0000_0000_0001_0010
+		-- [3] XOR R3, R1, R2 opc=0100 ra=0011 rb=0001 rc=0010 -> 0100_0011_0001_0010
+		report "Loading ITCM with test instructions";
 		ITCM_tb_wr <= '1';
-		addr_i := 0;
-		while not endfile(itcm_init) loop
-			readline(itcm_init, l);
-			read(l, data_v);
-			ITCM_tb_in      <= data_v;
-			ITCM_tb_addr_in <= std_logic_vector(to_unsigned(addr_i, AddrWidth));
-			wait until rising_edge(clk);
-			addr_i := addr_i + 1;
-		end loop;
-		ITCM_tb_wr <= '0';
 
-		-- ---- Load DTCM ----
-		report "Loading DTCM from DTCMinit.txt";
-		DTCM_tb_wr <= '1';
-		addr_i := 0;
-		while not endfile(dtcm_init) loop
-			readline(dtcm_init, l);
-			read(l, data_v);
-			DTCM_tb_in      <= data_v;
-			DTCM_tb_addr_in <= std_logic_vector(to_unsigned(addr_i, AddrWidth));
-			wait until rising_edge(clk);
-			addr_i := addr_i + 1;
-		end loop;
-		DTCM_tb_wr <= '0';
+		ITCM_tb_in <= "1100000111111111"; ITCM_tb_addr_in <= "000000"; -- [0] MOV R1, #0xFF
+		wait until rising_edge(clk);
+		ITCM_tb_in <= "1100001000000001"; ITCM_tb_addr_in <= "000001"; -- [1] MOV R2, #1
+		wait until rising_edge(clk);
+		ITCM_tb_in <= "0000000000010010"; ITCM_tb_addr_in <= "000010"; -- [2] ADD R0, R1, R2
+		wait until rising_edge(clk);
+		ITCM_tb_in <= "0100001100010010"; ITCM_tb_addr_in <= "000011"; -- [3] XOR R3, R1, R2
+		wait until rising_edge(clk);
+
+		ITCM_tb_wr <= '0';
 		TBactive   <= '0';
 
-		-- ---- Manually drive a FETCH cycle ----
-		-- FETCH: IRin=1, PCin=1, PCsel="00" → latch instruction from ProgMem, PC←PC+1
-		report "FETCH";
-		IRin  <= '1';
-		PCin  <= '1';
-		PCsel <= "00";
+		-- ---- MOV R1, #0xFF  ->  R1 = sign_ext(0xFF) = 0xFFFF ----
+		report "FETCH: MOV R1, #0xFF";
+		IRin <= '1'; PCin <= '1'; PCsel <= "00";
 		wait until rising_edge(clk);
-		IRin  <= '0';
-		PCin  <= '0';
-		wait for 1 ns;
-		report "After FETCH: add="  & std_logic'image(add)
-		                 & " sub="  & std_logic'image(sub)
-		                 & " mov="  & std_logic'image(mov)
-		                 & " ld="   & std_logic'image(ld)
-		                 & " st="   & std_logic'image(st)
-		                 & " jmp="  & std_logic'image(jmp)
-		                 & " done=" & std_logic'image(done);
+		IRin <= '0'; PCin <= '0';
 
-		-- ---- Example: manually drive R-type execution (add/sub/and/or/xor) ----
-		-- Step R1: RFout=1, Ain=1, RFaddr_rd_sel="01" (read rb → A_reg)
-		report "R1: read rb → A_reg";
-		RFout         <= '1';
-		Ain           <= '1';
-		RFaddr_rd_sel <= "01";
+		report "MOV: imm8 -> R1";
+		Imm1_in <= '1'; RFin <= '1'; RFaddr_wr_sel <= "10"; -- wr_sel=10 -> ra = R1
+		wait until rising_edge(clk);
+		Imm1_in <= '0'; RFin <= '0';
+
+		-- ---- MOV R2, #1  ->  R2 = 0x0001 ----
+		report "FETCH: MOV R2, #1";
+		IRin <= '1'; PCin <= '1'; PCsel <= "00";
+		wait until rising_edge(clk);
+		IRin <= '0'; PCin <= '0';
+
+		report "MOV: imm8 -> R2";
+		Imm1_in <= '1'; RFin <= '1'; RFaddr_wr_sel <= "10"; -- wr_sel=10 -> ra = R2
+		wait until rising_edge(clk);
+		Imm1_in <= '0'; RFin <= '0';
+
+		-- ---- Test 1: ADD R0, R1, R2 ----
+		-- R1=0xFFFF + R2=0x0001 = 0x0000  ->  Z=1, N=0, C=1
+		report "--- Test 1: ADD R0, R1, R2 ---";
+		report "FETCH: ADD R0, R1, R2";
+		IRin <= '1'; PCin <= '1'; PCsel <= "00";
+		wait until rising_edge(clk);
+		IRin <= '0'; PCin <= '0';
+
+		report "ADD R1: RF[rb=R1] -> A_reg";
+		RFout <= '1'; Ain <= '1'; RFaddr_rd_sel <= "01"; -- rd_sel=01 -> rb = R1
 		wait until rising_edge(clk);
 		RFout <= '0'; Ain <= '0';
 
-		-- Step R2: RFout=1, Cin=1, RFaddr_rd_sel="00" (read rc), ALUFN=opcode
-		report "R2: read rc, ALU compute → C_reg";
-		RFout         <= '1';
-		Cin           <= '1';
-		RFaddr_rd_sel <= "00";
-		ALUFN         <= "0000"; -- ADD
+		report "ADD R2: RF[rc=R2] + A_reg -> C_reg";
+		RFout <= '1'; Cin <= '1'; RFaddr_rd_sel <= "00"; ALUFN <= "0000"; -- ADD
 		wait until rising_edge(clk);
 		RFout <= '0'; Cin <= '0';
 
-		-- Step R3: Cout=1, RFin=1, RFaddr_wr_sel="10" (write ra ← C_reg)
-		report "R3: write result to RF[ra]";
-		Cout          <= '1';
-		RFin          <= '1';
-		RFaddr_wr_sel <= "10";
+		report "ADD R3: C_reg -> RF[ra=R0]";
+		Cout <= '1'; RFin <= '1'; RFaddr_wr_sel <= "10"; -- wr_sel=10 -> ra = R0
 		wait until rising_edge(clk);
 		Cout <= '0'; RFin <= '0';
 		wait for 1 ns;
-		report "Zflag=" & std_logic'image(Zflag)
-		     & " Nflag=" & std_logic'image(Nflag)
-		     & " Cflag=" & std_logic'image(Cflag);
 
-		-- ---- Dump DTCM contents to DTCMcontent.txt ----
-		report "Dumping DTCM to DTCMcontent.txt";
-		TBactive <= '1';
-		for i in 0 to MEM_DEPTH-1 loop
-			DTCM_tb_addr_out <= std_logic_vector(to_unsigned(i, AddrWidth));
-			wait until rising_edge(clk);
-			wait for 1 ns;
-			write(l, DTCM_tb_out);
-			writeline(dtcm_result, l);
-		end loop;
+		-- ---- Test 2: XOR R3, R1, R2 ----
+		-- R1=0xFFFF XOR R2=0x0001 = 0xFFFE  ->  Z=0, N=1, C=0
+		report "--- Test 2: XOR R3, R1, R2 ---";
+		report "FETCH: XOR R3, R1, R2";
+		IRin <= '1'; PCin <= '1'; PCsel <= "00";
+		wait until rising_edge(clk);
+		IRin <= '0'; PCin <= '0';
 
+		report "XOR R1: RF[rb=R1] -> A_reg";
+		RFout <= '1'; Ain <= '1'; RFaddr_rd_sel <= "01"; -- rd_sel=01 -> rb = R1
+		wait until rising_edge(clk);
+		RFout <= '0'; Ain <= '0';
+
+		report "XOR R2: RF[rc=R2] XOR A_reg -> C_reg";
+		RFout <= '1'; Cin <= '1'; RFaddr_rd_sel <= "00"; ALUFN <= "0100"; -- XOR
+		wait until rising_edge(clk);
+		RFout <= '0'; Cin <= '0';
+
+		report "XOR R3: C_reg -> RF[ra=R3]";
+		Cout <= '1'; RFin <= '1'; RFaddr_wr_sel <= "10"; -- wr_sel=10 -> ra = R3
+		wait until rising_edge(clk);
+		Cout <= '0'; RFin <= '0';
+		wait for 1 ns;
 		report "Datapath TB complete." severity note;
 		wait;
 	end process;
