@@ -3,7 +3,6 @@ use ieee.std_logic_1164.all;
 -----------------------------------------------------------------
 -- Control Unit testbench
 -- Drives status inputs manually and verifies FSM control outputs
--- for each instruction type.
 -----------------------------------------------------------------
 entity tb_Control is
 end tb_Control;

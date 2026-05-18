@@ -4,11 +4,7 @@ use ieee.numeric_std.all;
 use std.textio.all;
 use ieee.std_logic_textio.all;
 use work.aux_package.all;
------------------------------------------------------------------
--- Full-system testbench (Control + Datapath via top)
--- Working directory must be the LAB3 root so that
--- ITCMinit.txt, DTCMinit.txt, and DTCMcontent.txt are found.
------------------------------------------------------------------
+
 entity tb_top is
 end tb_top;
 
