@@ -5,7 +5,7 @@ entity opc_decoder is
 	generic( RegWidth: integer:=4 );
 	port(
 		opc:                                                            in  std_logic_vector(RegWidth-1 downto 0);
-		st, ld, mov, done, add, sub, jmp, jc, jnc, andop, orop, xorop: out std_logic
+		st,shl, ld, mov, done, add, sub, jmp, jc, jnc, andop, orop, xorop: out std_logic
 	);
 end opc_decoder;
 -----------------------------------------------------------------
@@ -17,7 +17,7 @@ begin
 	andop <= '1' when opc = "0010" else '0';
 	orop  <= '1' when opc = "0011" else '0';
 	xorop <= '1' when opc = "0100" else '0';
-	-- xorop <= '1' when opc = "0100" else '0';
+	shl <= '1' when opc = "0101" else '0';
 	-- xorop <= '1' when opc = "0100" else '0';
 
 	-- J-Type

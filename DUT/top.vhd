@@ -53,6 +53,7 @@ architecture structural of top is
 	signal add   : std_logic;
 	signal sub   : std_logic;
 	signal andop : std_logic;
+	signal shl : std_logic;
 	signal orop  : std_logic;
 	signal xorop : std_logic;
 	signal jmp   : std_logic;
@@ -80,6 +81,7 @@ begin
 			-- Status inputs from Datapath
 			add           => add,
 			sub           => sub,
+			shl           => shl,
 			andop         => andop,
 			orop          => orop,
 			xorop         => xorop,
@@ -155,6 +157,7 @@ begin
 			-- Status outputs to Control Unit
 			add   => add,
 			sub   => sub,
+			shl   => shl,
 			andop => andop,
 			orop  => orop,
 			xorop => xorop,

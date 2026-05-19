@@ -16,6 +16,7 @@ entity Control is
 		andop : in std_logic;
 		orop  : in std_logic;
 		xorop : in std_logic;
+		shl   : in std_logic;
 		jmp   : in std_logic;
 		jc    : in std_logic;
 		jnc   : in std_logic;
@@ -56,7 +57,7 @@ architecture arch of Control is
 	type state_type is (
 		S_FETCH,
 		S_DECODE,
-		S_R1, S_R2, S_R3,            -- R-Type: add/sub/and/or/xor
+		S_R1, S_R2, S_R3,            -- R-Type: add/sub/and/or/xor/shl
 		S_MOV,                       -- I-Type: mov
 		S_LD1, S_LD2, S_LD3, S_LD4,  -- I-Type: ld
 		S_ST1, S_ST2, S_ST3, S_ST4,  -- I-Type: st
@@ -81,6 +82,7 @@ begin
 	          "0010" when andop='1' else
 	          "0011" when orop='1'  else
 	          "0100" when xorop='1' else
+	          "0101" when shl='1' else
 	          (others => '0');
 
 	-----------------------------------------------------------------
@@ -101,7 +103,7 @@ begin
 	-----------------------------------------------------------------
 	-- Process 2: Next State Logic (combinational)
 	-----------------------------------------------------------------
-	process(current_state, add, sub, andop, orop, xorop,
+	process(current_state, add, sub, andop, orop, xorop,shl,
 	        mov, ld, st, jmp, jc, jnc, done)
 	begin
 		case current_state is
@@ -109,7 +111,7 @@ begin
 				next_state <= S_DECODE;
 
 			when S_DECODE =>
-				if add='1' or sub='1' or andop='1' or orop='1' or xorop='1' then
+				if add='1' or sub='1' or andop='1' or orop='1' or xorop='1' or shl='1' then
 					next_state <= S_R1;
 				elsif ld='1'   then next_state <= S_LD1;
 				elsif mov='1'  then next_state <= S_MOV;

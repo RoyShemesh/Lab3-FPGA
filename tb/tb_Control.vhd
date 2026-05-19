@@ -22,6 +22,7 @@ architecture sim of tb_Control is
 	signal andop : std_logic := '0';
 	signal orop  : std_logic := '0';
 	signal xorop : std_logic := '0';
+	signal shl : std_logic := '0';
 	signal jmp   : std_logic := '0';
 	signal jc    : std_logic := '0';
 	signal jnc   : std_logic := '0';
@@ -67,6 +68,7 @@ begin
 			andop         => andop,
 			orop          => orop,
 			xorop         => xorop,
+			shl           => shl,
 			jmp           => jmp,
 			jc            => jc,
 			jnc           => jnc,

@@ -51,6 +51,7 @@ architecture sim of tb_Datapath is
 	-- Status outputs
 	signal add   : std_logic;
 	signal sub   : std_logic;
+	signal shl   : std_logic;
 	signal andop : std_logic;
 	signal orop  : std_logic;
 	signal xorop : std_logic;
@@ -101,6 +102,7 @@ begin
 			DTCM_tb_out      => DTCM_tb_out,
 			add              => add,
 			sub              => sub,
+			shl              => shl,
 			andop            => andop,
 			orop             => orop,
 			xorop            => xorop,

@@ -32,7 +32,7 @@ architecture sim of tb_top is
 
 begin
 
-	clk <= not clk after CLK_PERIOD / 2;
+clk <= not clk after CLK_PERIOD / 2;
 
 	DUT : entity work.top generic map(BusWidth => BusWidth, RegWidth => RegWidth, AddrWidth => AddrWidth)
 		port map(
@@ -48,13 +48,12 @@ begin
 			DTCM_tb_addr_in  => DTCM_tb_addr_in,
 			DTCM_tb_addr_out => DTCM_tb_addr_out,
 			DTCM_tb_out      => DTCM_tb_out,
-			done             => done
+			done             => done	
 		);
-
 	process
-		file     itcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/SW-QA/Ex1/bin/ITCMinit.txt";
-		file     dtcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/SW-QA/Ex1/bin/DTCMinit.txt";
-		file     dtcm_result : text open write_mode is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/tb/DTCMcontent1.txt";
+		file     itcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/RealTIme/RTtest/bin/ITCMinit.txt";
+		file     dtcm_init   : text open read_mode  is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/RealTIme/RTtest/bin/DTCMinit.txt";
+		file     dtcm_result : text open write_mode is "C:/Users/sheme/OneDrive/Desktop/UNI/3rd year/ARCH LAB/LAB3/Lab3-FPGA/tb/DTCMcontentRealTime.txt";
 		variable l           : line;
 		variable data_v      : std_logic_vector(BusWidth-1 downto 0);
 		variable addr_i      : integer;

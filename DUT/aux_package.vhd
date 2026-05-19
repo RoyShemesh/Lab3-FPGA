@@ -26,7 +26,7 @@ package aux_package is
 	component opc_decoder is
 		generic( RegWidth: integer:=4 );
 		port(   opc:                                                            in  std_logic_vector(RegWidth-1 downto 0);
-				st, ld, mov, done, add, sub, jmp, jc, jnc, andop, orop, xorop: out std_logic
+				st, ld, shl, mov, done, add, sub, jmp, jc, jnc, andop, orop, xorop: out std_logic
 		);
 	end component;
 
@@ -126,6 +126,7 @@ package aux_package is
 			-- Status inputs from Datapath (15 signals)
 			add   : in std_logic;
 			sub   : in std_logic;
+			shl   : in std_logic;
 			andop : in std_logic;
 			orop  : in std_logic;
 			xorop : in std_logic;
@@ -206,6 +207,7 @@ package aux_package is
 			add   : out std_logic;
 			sub   : out std_logic;
 			andop : out std_logic;
+			shl : out std_logic;
 			orop  : out std_logic;
 			xorop : out std_logic;
 			jmp   : out std_logic;
@@ -219,5 +221,17 @@ package aux_package is
 			Nflag : out std_logic;
 			Cflag : out std_logic
 		);
+	end component;
+	
+	---------------SHIFTER-------------------
+	component SHIFTER is
+		GENERIC (n : INTEGER := 8;
+		   k : integer := 3;   -- k=log2(n)
+		   m : integer := 4	); -- m=2^(k-1)
+		PORT (Y_i: IN STD_LOGIC_VECTOR (n-1 DOWNTO 0);
+			X_i: IN STD_LOGIC_VECTOR (k-1 DOWNTO 0);
+			ALUFN_i : IN STD_LOGIC_VECTOR (2 DOWNTO 0);
+            ALUout_o: OUT STD_LOGIC_VECTOR(n-1 downto 0);
+			Cflag_o: OUT STD_LOGIC);
 	end component;
 end aux_package;

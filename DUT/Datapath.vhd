@@ -47,7 +47,7 @@ entity Datapath is
 		andop : out std_logic;
 		orop  : out std_logic;
 		xorop : out std_logic;
-		-- xorop : out std_logic;
+		shl   : out std_logic;
 		-- xorop : out std_logic;
 		jmp   : out std_logic;
 		jc    : out std_logic;
@@ -181,6 +181,7 @@ begin
 			opc   => opc_sig,
 			add   => add,
 			sub   => sub,
+			shl   => shl,
 			andop => andop,
 			orop  => orop,
 			xorop => xorop,
